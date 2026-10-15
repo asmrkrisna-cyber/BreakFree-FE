@@ -24,9 +24,11 @@ interface ShiftRecord {
 }
 
 export default function RekapShiftPage() {
-  const [cashierName] = useState('Asep (Kasir 1)');
+  const [isShiftActive, setIsShiftActive] = useState(true);
+  const [cashierName, setCashierName] = useState('Asep (Kasir 1)');
+  const [shiftCategory, setShiftCategory] = useState<'Opening' | 'Closing'>('Opening');
   const [startTime] = useState('07:00 WIB');
-  const [startingCash] = useState(500000);
+  const [startingCash, setStartingCash] = useState(500000);
   const [additionalCashIn] = useState(50000);
   const [cashOut] = useState(120000);
 
@@ -37,7 +39,12 @@ export default function RekapShiftPage() {
   // State Modal Struk Thermal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
-  // Data Rincian Menu Terjual Selama Shift (Bisa di-fetch dari Database)
+  // State Input Buka Shift Baru
+  const [inputCashier, setInputCashier] = useState('pasha');
+  const [inputCategory, setInputCategory] = useState<'Opening' | 'Closing'>('Opening');
+  const [inputStartingCash, setInputStartingCash] = useState('500000');
+
+  // Data Rincian Menu Terjual Selama Shift
   const [soldItems] = useState<SoldItem[]>([
     { name: 'Ice Kopi Susu', qty: 25, price: 18000 },
     { name: 'Breakfree Aren Latte', qty: 18, price: 22000 },
@@ -58,7 +65,7 @@ export default function RekapShiftPage() {
   // Total Item Terjual
   const totalItemsSold = soldItems.reduce((sum, item) => sum + item.qty, 0);
 
-  const [history] = useState<ShiftRecord[]>([
+  const [history, setHistory] = useState<ShiftRecord[]>([
     {
       id: 'rec-1',
       shiftCategory: 'Closing',
@@ -75,7 +82,33 @@ export default function RekapShiftPage() {
   ]);
 
   const handleFinishShift = () => {
-    alert('Shift berhasil diselesaikan dan ditutup!');
+    if (confirm('Yakin ingin menyelesaikan dan menutup shift ini?')) {
+      const closedShiftData: ShiftRecord = {
+        id: Date.now().toString(),
+        shiftCategory: shiftCategory,
+        cashierName: cashierName,
+        timeRange: `${startTime} - Sekarang`,
+        startingCash: startingCash,
+        totalCash: revenueCash,
+        totalQRIS: revenueQRIS,
+        totalShopeeFood: revenueShopeeFood,
+        taxAmount: totalTax,
+        netRevenue: netRevenue,
+        finalPhysicalCash: estimatedPhysicalCash,
+      };
+
+      setHistory([closedShiftData, ...history]);
+      setIsShiftActive(false);
+    }
+  };
+
+  const handleStartShift = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputCashier || !inputStartingCash) return;
+    setCashierName(inputCashier);
+    setShiftCategory(inputCategory);
+    setStartingCash(Number(inputStartingCash));
+    setIsShiftActive(true);
   };
 
   const handlePrintThermal = () => {
@@ -84,7 +117,7 @@ export default function RekapShiftPage() {
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-[#2C221E] flex flex-col relative">
-      {/* CSS Khusus Print Struk Thermal (Menyembunyikan UI Web saat Print) */}
+      {/* CSS Khusus Print Struk Thermal */}
       <style jsx global>{`
         @media print {
           body * {
@@ -113,152 +146,213 @@ export default function RekapShiftPage() {
       <Sidebar />
 
       {/* HEADER */}
-      <header className="p-4 border-b border-[#EBE6DF] bg-white flex items-center justify-between shadow-xs sticky top-0 z-20 pl-20 no-print">
+      <header className="p-4 border-b border-[#EBE6DF] bg-white flex items-center justify-between shadow-xs sticky top-0 z-25 pl-20 no-print">
         <div>
           <h1 className="text-lg font-bold text-[#2C221E]">Rekap Shift & Kas</h1>
           <p className="text-[11px] text-[#7B6E65]">
             Kelola Pergantian Shift Opening/Closing & Transaksi Laci Kasir
           </p>
         </div>
-        <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-200">
-          • Shift Opening Aktif ({cashierName})
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+            isShiftActive
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          }`}
+        >
+          {isShiftActive ? `• Shift ${shiftCategory} Aktif (${cashierName})` : '• Shift Nonaktif (Belum Buka)'}
         </span>
       </header>
 
       {/* MAIN CONTENT */}
       <main className="p-6 space-y-6 flex-1 pl-20 no-print">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* CARD 1: LACI KASIR */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md uppercase tracking-wider">
-                  SHIFT OPENING
-                </span>
-                <span className="text-[11px] font-medium text-[#7B6E65]">
-                  Mulai: {startTime}
-                </span>
+        
+        {/* KONDISI: JIKA SHIFT NONAKTIF, TAMPILKAN FORM BUKA SHIFT BARU */}
+        {!isShiftActive ? (
+          <div className="bg-white p-6 rounded-2xl border border-[#EBE6DF] shadow-xs max-w-xl mx-auto space-y-4">
+            <h2 className="text-sm font-bold text-[#2C221E] border-b border-[#EBE6DF] pb-3">
+              🟢 Buka Shift Baru
+            </h2>
+            <form onSubmit={handleStartShift} className="space-y-4">
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-[#7B6E65]">Kategori Shift</label>
+                <select
+                  value={inputCategory}
+                  onChange={(e) => setInputCategory(e.target.value as 'Opening' | 'Closing')}
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE6DF] rounded-xl text-xs text-[#2C221E] font-medium outline-none focus:border-[#6E5545]"
+                >
+                  <option value="Opening">Opening</option>
+                  <option value="Closing">Closing</option>
+                </select>
               </div>
-              <h2 className="text-base font-bold text-[#2C221E]">{cashierName}</h2>
 
-              <div className="mt-4 space-y-2 text-xs">
-                <div className="flex justify-between text-[#7B6E65]">
-                  <span>Modal Kas Awal</span>
-                  <span className="font-bold text-[#2C221E]">
-                    Rp {startingCash.toLocaleString('id-ID')}
-                  </span>
-                </div>
-                <div className="flex justify-between text-emerald-600">
-                  <span>Kas Masuk Tambahan</span>
-                  <span className="font-bold">
-                    + Rp {additionalCashIn.toLocaleString('id-ID')}
-                  </span>
-                </div>
-                <div className="flex justify-between text-red-600">
-                  <span>Kas Keluar / Pengeluaran</span>
-                  <span className="font-bold">
-                    - Rp {cashOut.toLocaleString('id-ID')}
-                  </span>
-                </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-[#7B6E65]">Nama / ID Kasir</label>
+                <input
+                  type="text"
+                  required
+                  value={inputCashier}
+                  onChange={(e) => setInputCashier(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE6DF] rounded-xl text-xs text-[#2C221E] font-medium outline-none focus:border-[#6E5545] placeholder:text-gray-400"
+                  placeholder="Masukkan nama kasir"
+                />
               </div>
-            </div>
 
-            <div className="pt-3 border-t border-[#EBE6DF] bg-[#FDFBF7] -mx-5 -mb-5 p-5 rounded-b-2xl">
-              <span className="text-[10px] uppercase font-bold text-[#7B6E65] tracking-wider block">
-                ESTIMASI KAS FISIK DI LACI
-              </span>
-              <span className="text-xl font-bold text-[#2C221E] block mt-0.5">
-                Rp {estimatedPhysicalCash.toLocaleString('id-ID')}
-              </span>
-            </div>
-          </div>
-
-          {/* CARD 2: RINCIAN PENDAPATAN SHIFT */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between space-y-4">
-            <div className="space-y-3">
-              <h2 className="text-sm font-bold text-[#2C221E] border-b border-[#EBE6DF] pb-2">
-                Rincian Pendapatan Shift
-              </h2>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center py-1">
-                  <span className="flex items-center gap-1.5 text-[#7B6E65]">
-                    💵 Cash / Tunai
-                  </span>
-                  <span className="font-bold text-[#2C221E]">
-                    Rp {revenueCash.toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-1">
-                  <span className="flex items-center gap-1.5 text-[#7B6E65]">
-                    📱 Non-Tunai / QRIS
-                  </span>
-                  <span className="font-bold text-[#2C221E]">
-                    Rp {revenueQRIS.toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-1">
-                  <span className="flex items-center gap-1.5 text-[#7B6E65]">
-                    🛵 ShopeeFood
-                  </span>
-                  <span className="font-bold text-[#2C221E]">
-                    Rp {revenueShopeeFood.toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center py-1 text-red-600 border-t border-dashed border-[#EBE6DF] pt-2">
-                  <span>Pajak Resto (10% Excl. Shopee)</span>
-                  <span className="font-bold">
-                    - Rp {totalTax.toLocaleString('id-ID')}
-                  </span>
-                </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-bold text-[#7B6E65]">Modal Kas Awal di Laci (Rp)</label>
+                <input
+                  type="number"
+                  required
+                  value={inputStartingCash}
+                  onChange={(e) => setInputStartingCash(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#EBE6DF] rounded-xl text-xs text-[#2C221E] font-medium outline-none focus:border-[#6E5545] placeholder:text-gray-400"
+                  placeholder="500000"
+                />
               </div>
-            </div>
 
-            <div className="pt-3 border-t border-[#EBE6DF]">
-              <div className="flex justify-between items-center text-xs text-[#7B6E65] mb-1">
-                <span>TOTAL OMSET BRUTO:</span>
-                <span className="font-bold">
-                  Rp {totalOmset.toLocaleString('id-ID')}
-                </span>
-              </div>
-              <div className="flex justify-between items-center text-sm font-bold text-[#6E5545]">
-                <span>PENDAPATAN MURNI:</span>
-                <span className="text-base">
-                  Rp {netRevenue.toLocaleString('id-ID')}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* CARD 3: TUTUP / OPER SHIFT */}
-          <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between">
-            <div className="space-y-3">
-              <h2 className="text-sm font-bold text-[#2C221E]">Tutup / Oper Shift</h2>
-              <p className="text-xs text-[#7B6E65]">
-                Pastikan uang fisik di laci sesuai dengan rekapitulasi sistem sebelum
-                menyelesaikan shift.
-              </p>
-            </div>
-
-            <div className="space-y-2 pt-6">
               <button
-                onClick={() => setIsReceiptOpen(true)}
-                className="w-full py-2.5 bg-white border border-[#EBE6DF] hover:bg-[#FAF7F2] text-[#2C221E] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
+                type="submit"
+                className="w-full py-3 bg-[#2C221E] hover:bg-[#42352E] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer mt-2"
               >
-                🖨️ Cetak Struk Rekap Kas
+                Mulai Shift Sekarang
               </button>
-              <button
-                onClick={handleFinishShift}
-                className="w-full py-3 bg-[#6E5545] hover:bg-[#584336] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
-              >
-                Selesaikan & Tutup Shift
-              </button>
+            </form>
+          </div>
+        ) : (
+          /* JIKA SHIFT AKTIF */
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* CARD 1: LACI KASIR */}
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md uppercase tracking-wider">
+                    SHIFT {shiftCategory.toUpperCase()}
+                  </span>
+                  <span className="text-[11px] font-medium text-[#7B6E65]">
+                    Mulai: {startTime}
+                  </span>
+                </div>
+                <h2 className="text-base font-bold text-[#2C221E]">{cashierName}</h2>
+
+                <div className="mt-4 space-y-2 text-xs">
+                  <div className="flex justify-between text-[#7B6E65]">
+                    <span>Modal Kas Awal</span>
+                    <span className="font-bold text-[#2C221E]">
+                      Rp {startingCash.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Kas Masuk Tambahan</span>
+                    <span className="font-bold">
+                      + Rp {additionalCashIn.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-red-600">
+                    <span>Kas Keluar / Pengeluaran</span>
+                    <span className="font-bold">
+                      - Rp {cashOut.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#EBE6DF] bg-[#FDFBF7] -mx-5 -mb-5 p-5 rounded-b-2xl">
+                <span className="text-[10px] uppercase font-bold text-[#7B6E65] tracking-wider block">
+                  ESTIMASI KAS FISIK DI LACI
+                </span>
+                <span className="text-xl font-bold text-[#2C221E] block mt-0.5">
+                  Rp {estimatedPhysicalCash.toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
+
+            {/* CARD 2: RINCIAN PENDAPATAN SHIFT */}
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold text-[#2C221E] border-b border-[#EBE6DF] pb-2">
+                  Rincian Pendapatan Shift
+                </h2>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center py-1">
+                    <span className="flex items-center gap-1.5 text-[#7B6E65]">
+                      💵 Cash / Tunai
+                    </span>
+                    <span className="font-bold text-[#2C221E]">
+                      Rp {revenueCash.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1">
+                    <span className="flex items-center gap-1.5 text-[#7B6E65]">
+                      📱 Non-Tunai / QRIS
+                    </span>
+                    <span className="font-bold text-[#2C221E]">
+                      Rp {revenueQRIS.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1">
+                    <span className="flex items-center gap-1.5 text-[#7B6E65]">
+                      🛵 ShopeeFood
+                    </span>
+                    <span className="font-bold text-[#2C221E]">
+                      Rp {revenueShopeeFood.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 text-red-600 border-t border-dashed border-[#EBE6DF] pt-2">
+                    <span>Pajak Resto (10% Excl. Shopee)</span>
+                    <span className="font-bold">
+                      - Rp {totalTax.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#EBE6DF]">
+                <div className="flex justify-between items-center text-xs text-[#7B6E65] mb-1">
+                  <span>TOTAL OMSET BRUTO:</span>
+                  <span className="font-bold">
+                    Rp {totalOmset.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-bold text-[#6E5545]">
+                  <span>PENDAPATAN MURNI:</span>
+                  <span className="text-base">
+                    Rp {netRevenue.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* CARD 3: TUTUP / OPER SHIFT */}
+            <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs flex flex-col justify-between">
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold text-[#2C221E]">Tutup / Oper Shift</h2>
+                <p className="text-xs text-[#7B6E65]">
+                  Pastikan uang fisik di laci sesuai dengan rekapitulasi sistem sebelum
+                  menyelesaikan shift.
+                </p>
+              </div>
+
+              <div className="space-y-2 pt-6">
+                <button
+                  onClick={() => setIsReceiptOpen(true)}
+                  className="w-full py-2.5 bg-white border border-[#EBE6DF] hover:bg-[#FAF7F2] text-[#2C221E] rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  🖨️ Cetak Struk Rekap Kas
+                </button>
+                <button
+                  onClick={handleFinishShift}
+                  className="w-full py-3 bg-[#6E5545] hover:bg-[#584336] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Selesaikan & Tutup Shift
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* RIWAYAT REKAP SHIFT SELESAI */}
         <div className="bg-white p-5 rounded-2xl border border-[#EBE6DF] shadow-xs space-y-4">
@@ -333,7 +427,7 @@ export default function RekapShiftPage() {
             {/* HEADER STRUK */}
             <div className="text-center space-y-1 border-b border-dashed border-[#EBE6DF] pb-4">
               <h3 className="font-bold text-sm">BREAKFREE COFFEE</h3>
-              <p className="text-[10px] text-[#7B6E65]">LAPORAN PENJUALAN SHIFT</p>
+              <p className="text-[10px] text-[#7B6E65]">LAPORAN PENJUALAN SHIFT ({shiftCategory.toUpperCase()})</p>
               <p className="text-[10px] text-[#7B6E65]">
                 Kasir: {cashierName} • {startTime}
               </p>

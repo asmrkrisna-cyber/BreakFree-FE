@@ -13,22 +13,25 @@ export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cart, setCart] = useState<CartItem[]>([]);
   
-  // State Shift Aktif
+  // State Shift & Kas Masuk Tambahan
   const [activeShiftInfo, setActiveShiftInfo] = useState<string>('• Shift Opening Aktif (pasha)');
   const [isShiftModalOpen, setIsShiftModalOpen] = useState<boolean>(false);
   const [selectedKasir, setSelectedKasir] = useState<string>('pasha');
   const [selectedShiftType, setSelectedShiftType] = useState<string>('Shift Opening Aktif');
+  const [cashInAddition, setCashInAddition] = useState<string>('');
 
   useEffect(() => {
     const savedShift = localStorage.getItem('active_shift_status');
     if (savedShift) {
       setActiveShiftInfo(savedShift);
     } else {
+      // Otomatis membuka modal shift jika belum ada data shift aktif (misal setelah login baru)
       setIsShiftModalOpen(true);
     }
   }, []);
 
   const handleSaveShift = () => {
+    // Nominal modal tidak disertakan pada tampilan badge agar tetap bersih
     const newShiftText = `• ${selectedShiftType} (${selectedKasir})`;
     setActiveShiftInfo(newShiftText);
     localStorage.setItem('active_shift_status', newShiftText);
@@ -192,60 +195,59 @@ export default function POSPage() {
   };
 
   return (
-    <div className="h-screen bg-[#FDFBF7] text-[#2C221E] flex flex-col overflow-hidden relative">
+    <div className="h-screen bg-[#FDFBF7] text-[#2C221E] flex overflow-hidden relative">
       <Sidebar />
       
-      <header className="p-4 border-b border-[#EBE6DF] bg-white flex items-center justify-between shadow-xs z-20 pl-20 shrink-0">
-        <div>
-          <h1 className="text-lg font-bold text-[#2C221E]">BreakFree POS</h1>
-          <p className="text-[11px] text-[#7B6E65]">Malang, Indonesia • Kelola Transaksi Kasir</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsShiftModalOpen(true)}
-            className="px-3.5 py-1.5 bg-[#E6F4EA] text-[#137333] hover:bg-[#d9ede0] rounded-full text-xs font-semibold border border-[#CEEAD6] transition-colors cursor-pointer"
-          >
-            {activeShiftInfo} 🔄
-          </button>
-        </div>
-      </header>
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <header className="p-4 pl-16 md:pl-20 border-b border-[#EBE6DF] bg-white flex items-center justify-between shadow-xs z-20 shrink-0">
+          <div>
+            <h1 className="text-lg font-bold text-[#2C221E]">BreakFree POS</h1>
+            <p className="text-[11px] text-[#7B6E65]">Malang, Indonesia • Kelola Transaksi Kasir</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-3.5 py-1.5 bg-[#E6F4EA] text-[#137333] rounded-full text-xs font-semibold border border-[#CEEAD6] select-none">
+              {activeShiftInfo}
+            </div>
+          </div>
+        </header>
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        <MenuList
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          filteredMenu={filteredMenu}
-          addToCart={addToCart}
-        />
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+          <MenuList
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            filteredMenu={filteredMenu}
+            addToCart={addToCart}
+          />
 
-        <CartPanel
-          cart={cart}
-          isShopeeFoodCart={isShopeeFoodCart}
-          customerName={customerName}
-          setCustomerName={setCustomerName}
-          tableNumber={tableNumber}
-          setTableNumber={setTableNumber}
-          updateQuantity={updateQuantity}
-          updateNote={updateNote}
-          discountMode={discountMode}
-          setDiscountMode={setDiscountMode}
-          selectedPresetId={selectedPresetId}
-          setSelectedPresetId={setSelectedPresetId}
-          discountType={discountType}
-          setDiscountType={setDiscountType}
-          discountInput={discountInput}
-          setDiscountInput={setDiscountInput}
-          subtotal={subtotal}
-          discountAmount={discountAmount}
-          activeDiscountName={activeDiscountName}
-          activeDiscountType={activeDiscountType}
-          activeDiscountVal={activeDiscountVal}
-          tax={tax}
-          total={total}
-          handleStartProcess={handleStartProcess}
-        />
+          <CartPanel
+            cart={cart}
+            isShopeeFoodCart={isShopeeFoodCart}
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            tableNumber={tableNumber}
+            setTableNumber={setTableNumber}
+            updateQuantity={updateQuantity}
+            updateNote={updateNote}
+            discountMode={discountMode}
+            setDiscountMode={setDiscountMode}
+            selectedPresetId={selectedPresetId}
+            setSelectedPresetId={setSelectedPresetId}
+            discountType={discountType}
+            setDiscountType={setDiscountType}
+            discountInput={discountInput}
+            setDiscountInput={setDiscountInput}
+            subtotal={subtotal}
+            discountAmount={discountAmount}
+            activeDiscountName={activeDiscountName}
+            activeDiscountType={activeDiscountType}
+            activeDiscountVal={activeDiscountVal}
+            tax={tax}
+            total={total}
+            handleStartProcess={handleStartProcess}
+          />
+        </div>
       </div>
 
       {isShiftModalOpen && (
@@ -254,6 +256,8 @@ export default function POSPage() {
           setSelectedShiftType={setSelectedShiftType}
           selectedKasir={selectedKasir}
           setSelectedKasir={setSelectedKasir}
+          cashInAddition={cashInAddition}
+          setCashInAddition={setCashInAddition}
           handleSaveShift={handleSaveShift}
         />
       )}

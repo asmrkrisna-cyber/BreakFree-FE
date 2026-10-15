@@ -175,7 +175,6 @@ export default function CartPanel({
             </div>
           )}
         </div>
-
         <div className="flex justify-between text-xs text-[#7B6E65]">
           <span>Subtotal</span>
           <span>Rp {subtotal.toLocaleString('id-ID')}</span>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
@@ -8,6 +8,12 @@ export default function LoginForm() {
   const [email, setEmail] = useState('kasir@breakcoffee.com');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Mencegah perbedaan rendering server vs client akibat ekstensi browser
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +29,13 @@ export default function LoginForm() {
     }
   };
 
+  // Jangan render form sebelum client sepenuhnya siap untuk menghindari hydration mismatch dari ekstensi browser
+  if (!isMounted) {
+    return <div className="w-full h-48 flex items-center justify-center text-zinc-500 text-xs">Memuat form login...</div>;
+  }
+
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-4" suppressHydrationWarning>
       {/* ERROR MESSAGE */}
       {error && (
         <div className="p-3 bg-red-900/40 border border-red-700/50 text-red-200 text-xs rounded-xl text-center">

@@ -1,3 +1,4 @@
+'use client';
 import { CATEGORIES, MenuItem } from './menuData';
 
 interface MenuListProps {
@@ -19,13 +20,14 @@ export default function MenuList({
 }: MenuListProps) {
   return (
     <main className="flex-1 p-6 overflow-y-auto space-y-6">
+      {/* KATEGORI SCROLL HORIZONTAL & SEARCH */}
       <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth pb-1 w-full max-w-full">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`h-9 px-4 flex items-center justify-center rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer border ${
+              className={`h-9 px-4 flex items-center justify-center rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-colors cursor-pointer border ${
                 selectedCategory === cat
                   ? 'bg-[#2C221E] text-white border-[#2C221E]'
                   : 'bg-white border-[#EBE6DF] text-[#7B6E65] hover:bg-[#FAF7F2]'
@@ -35,7 +37,6 @@ export default function MenuList({
             </button>
           ))}
         </div>
-
         <div className="w-full md:w-64 shrink-0">
           <input
             type="text"
@@ -53,7 +54,6 @@ export default function MenuList({
             {selectedCategory} <span className="text-xs font-normal text-[#7B6E65]">({filteredMenu.length} menu ditemukan)</span>
           </h2>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {filteredMenu.map((item) => (
             <div
@@ -76,7 +76,6 @@ export default function MenuList({
             </div>
           ))}
         </div>
-
         {filteredMenu.length === 0 && (
           <div className="text-center py-20 bg-white rounded-2xl border border-[#EBE6DF] text-xs text-[#7B6E65]">
             Menu tidak ditemukan di kategori ini.

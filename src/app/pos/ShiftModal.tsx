@@ -24,9 +24,7 @@ export default function ShiftModal({
           <h3 className="font-bold text-sm text-[#2C221E]">🕒 Pilih Shift & Kasir Aktif</h3>
           <p className="text-[11px] text-[#7B6E65]">Tentukan shift sebelum mulai melayani transaksi</p>
         </div>
-
         <div className="space-y-3 text-xs">
-          {/* 1. Status Shift (Hanya Opening & Closing) */}
           <div>
             <label className="block font-bold text-[#7B6E65] mb-1">Status Shift</label>
             <select
@@ -38,8 +36,6 @@ export default function ShiftModal({
               <option value="Shift Closing Aktif">Shift Closing Aktif</option>
             </select>
           </div>
-
-          {/* 2. Nama Kasir */}
           <div>
             <label className="block font-bold text-[#7B6E65] mb-1">Nama Kasir</label>
             <input
@@ -50,8 +46,6 @@ export default function ShiftModal({
               className="w-full px-3 py-2 bg-white border border-[#EBE6DF] rounded-xl text-xs text-[#2C221E] focus:outline-none focus:border-[#6E5545]"
             />
           </div>
-
-          {/* 3. Input Kas Masuk Tambahan Baru */}
           <div>
             <label className="block font-bold text-[#7B6E65] mb-1">Kas Masuk Tambahan</label>
             <input
@@ -63,7 +57,6 @@ export default function ShiftModal({
             />
           </div>
         </div>
-
         <div className="pt-2">
           <button
             onClick={handleSaveShift}

@@ -30,14 +30,12 @@ export default function ReceiptModal({
           <p className="text-[10px] text-[#7B6E65]">{completedReceipt.date}</p>
         </div>
         
-        {/* Informasi Detail Transaksi (Nama Pelanggan & No. Meja) */}
         <div className="text-[11px] text-[#7B6E65] space-y-0.5 border-b border-dashed border-[#EBE6DF] pb-3">
           <p><span className="font-bold text-[#2C221E]">No. Transaksi:</span> {completedReceipt.id}</p>
           <p><span className="font-bold text-[#2C221E]">Pelanggan:</span> {completedReceipt.customerName}</p>
           <p><span className="font-bold text-[#2C221E]">No. Meja:</span> <span className="font-bold text-[#6E5545]">{completedReceipt.tableNumber}</span></p>
           <p><span className="font-bold text-[#2C221E]">Metode Bayar:</span> <span className="font-bold text-[#6E5545]">{completedReceipt.paymentMethod}</span></p>
         </div>
-
         <div className="space-y-2 max-h-40 overflow-y-auto text-xs border-b border-dashed border-[#EBE6DF] pb-3">
           {completedReceipt.items.map((item) => (
             <div key={item.cartItemId} className="space-y-0.5">
